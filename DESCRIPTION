@@ -1,0 +1,13 @@
+Package: hydroTools
+Type: Package
+Title: Hydrological Tools
+Version: 0.1.0
+Authors@R: c(person("Benedikt", "Graeler", role = c("aut", "cre"),
+		     email = "Benedikt.Graeler@rub.de"),
+	      person("Svenja", "Fischer", role = "ctb"))
+Maintainer: Benedikt Graeler <benedikt.graeler@rub.de>
+Description: Collection of R functions to ease analysis of hydrological data. Starting from reading data into time series objects to disaggregation of time series data.
+License: file LICENSE
+LazyData: TRUE
+Imports: cmaes, caTools, evd, xts
+Suggests: lattice 

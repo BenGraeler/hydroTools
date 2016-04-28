@@ -1,0 +1,6 @@
+exportPattern("^[[:alpha:]]+")
+
+import(cmaes)
+import(caTools)
+import(evd)
+import(xts)
