@@ -1,6 +1,10 @@
-exportPattern("^[[:alpha:]]+")
+importFrom("stats", "embed", "optim", "quantile", "runif")
+importFrom("utils", "setTxtProgressBar", "tail", "txtProgressBar")
 
 import(cmaes)
 import(caTools)
 import(evd)
 import(xts)
+
+export(durationLevels, exQt, hydroYears, ts2events)
+export(dMultiGEV, pMultiGEV, qMultiGEV, rMultiGEV, fitMultiGEV)
