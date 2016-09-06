@@ -1,4 +1,5 @@
-\name{dMultiGEV}
+\name{MultiGEV}
+\alias{multiGEV}
 \alias{dMultiGEV}
 \alias{pMultiGEV}
 \alias{qMultiGEV}
@@ -7,28 +8,36 @@
 \title{
 The \code{multiGEV} Distribution
 }
+
 \description{
 These functions provide information about a convex combination of GEV distributions. \code{dMultiGEV} gives the density, \code{pMultiGEV} gives the distribution function, \code{qMultiGEV} gives the quantile function and \code{rMultiGEV} generates random deviates.
 }
+
 \usage{
 dMultiGEV(x, dur, par, log = F)
-pMultiGEV(x, dur, par)
-qMultiGEV(p, dur, par, interval=c(0,500))
+pMultiGEV(q, dur, par)
+qMultiGEV(p, dur, par)
 rMultiGEV(n, dur, par)
 
-dMultiGEV(annMax, durLevels, start, lower, gevDl = durLevels)
+%rMultiGEV(n, dur, par, startId = NA)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{x, q}{A numeric vector of quantiles.}
+  \item{p}{A numeric vector of probabilities.}
   \item{n}{For simulation, the number of random numbers to draw.}
   \item{dur}{The duration levels to be evaluated.}
   \item{par}{The parameter list as returned by \code{\link{fitMultiGEV}}.}
-  \item{log}{Single logical; shall the density be returned on log-sclae?}
+  \item{log}{Single logical; shall the density be returned on log-scale?}
+  % \item{startId}{Single numeric; starting index of the duration level for the simulation of random numbers. The default \code{startId = NA} causes a random starting index for each set of random numbers.}
 }
 
 \details{
-The parameters of a set of GEV distrib utions are combined in convex manner for different duration levels. The resulting distributiuon family provides a smooth and non-decreasing distribution over distribution levels and increasing qunatiles. This ensures that events with larger return period and/or larger duration are always larger.  
+The parameters of a set of GEV distributions are combined in convex manner for different duration levels. The resulting distribution family provides a smooth and non-decreasing distribution over distribution levels and increasing qunatiles. This ensures that events with larger return period and/or larger duration are always larger. 
+
+The simulation is based on an fully independent sample. Hence, non-increasing sets of random numbers might occur.
+
+% The simulation starts at a duration level according to \code{startId}. Moving away from the start index, random numbers are drawn from a restricted distribution such that the set of random numbers across the duration levels will always be increasing. 
 }
 
 \value{A vector or matrix corresponding densities, quantiles, fractions or set of random numbers for each duration.}

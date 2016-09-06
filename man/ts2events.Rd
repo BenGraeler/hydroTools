@@ -14,7 +14,7 @@ ts2events(ts, var, AE = 0, tc = 0.5 * AE^0.6,
 }
 
 \arguments{
-  \item{ts}{A time series inheriting the class \code{\linkS4class{xts}}.}
+  \item{ts}{A time series inheriting the class \code{\link{xts}}.}
   \item{var}{A character selecting the variable of interest, if missing, the first column is used.}
   \item{AE}{A single numeric defining the AE parameter (the area of the catchment).}
   \item{tc}{A single numeric defining the tc parameter (concentration time of the catchment).}
@@ -23,15 +23,12 @@ ts2events(ts, var, AE = 0, tc = 0.5 * AE^0.6,
   \item{tunit}{A character defining the temporal resolution as used in \code{\link{difftime}} (e.g. \code{"mins"}).}
 }
 
-\details{
-
-}
 \value{A data.frame with columns \code{time}, \code{endTime}, \code{volume}, \code{peakTime}, \code{peak} and \code{duration} of the events.}
 
 \references{
-Maniak, U. (2005): Hydrologie und Wasserwirtschaft: Eine Einführung für Ingenieure. Springer-Verlag.
+Maniak, U. (2005): Hydrologie und Wasserwirtschaft: Eine Einfuehrung fuer Ingenieure. Springer-Verlag.
 
-Harms, R.W. (1984): Synthese massgebender Abflussdaten fuer teilbebaute kleine Einzugsgebiete. Mitteilungen des Instituts für Wasserwirtschaft der Universitaet Hannover, Heft 55, 1984.
+Harms, R.W. (1984): Synthese massgebender Abflussdaten fuer teilbebaute kleine Einzugsgebiete. Mitteilungen des Instituts fuer Wasserwirtschaft der Universitaet Hannover, Heft 55, 1984.
 }
 
 \author{Benedikt Graeler}

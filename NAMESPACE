@@ -1,5 +1,6 @@
 importFrom("stats", "embed", "optim", "quantile", "runif")
 importFrom("utils", "setTxtProgressBar", "tail", "txtProgressBar")
+importFrom("zoo", "index")
 
 import(cmaes)
 import(caTools)

@@ -9,5 +9,5 @@ Maintainer: Benedikt Graeler <benedikt.graeler@rub.de>
 Description: Collection of R functions to ease analysis of hydrological data. Starting from reading data into time series objects to disaggregation of time series data.
 License: file LICENSE
 LazyData: TRUE
-Imports: cmaes, caTools, evd, xts
+Imports: cmaes, caTools, evd, xts, zoo
 Suggests: lattice 

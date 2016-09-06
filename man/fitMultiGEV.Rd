@@ -1,84 +1,44 @@
 \name{fitMultiGEV}
 \alias{fitMultiGEV}
-%- Also NEED an '\alias' for EACH other topic documented here.
-\title{
-%%  ~~function to do ... ~~
-}
+
+\title{A fitting routine for the multiGEV}
+
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+A fitting routine for the multiGEV
 }
+
 \usage{
-fitMultiGEV(annMax, durLevels, start, lower, gevDl = durLevels)
+fitMultiGEV(annMax, durLevels, start,
+            lower = rep(0, length(start)), gevDl = durLevels)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
-  \item{annMax}{
-%%     ~~Describe \code{annMax} here~~
+  \item{annMax}{A numeric matrix; holding the annual maxima (rows) per duration level (columns).}
+  \item{durLevels}{A nuemric vector; the duration levels used during the estimation.}
+  \item{start}{A numeric vector; starting values for the parameter optimisation (\code{\link{optim}}).}
+  \item{lower}{A numeric vector; lower bounds used durng the optimisation (\code{\link{optim}}).}
+  \item{gevDl}{A numeric vector; the duration levels used in the (\code{\link{multiGEV}}).}
 }
-  \item{durLevels}{
-%%     ~~Describe \code{durLevels} here~~
-}
-  \item{start}{
-%%     ~~Describe \code{start} here~~
-}
-  \item{lower}{
-%%     ~~Describe \code{lower} here~~
-}
-  \item{gevDl}{
-%%     ~~Describe \code{gevDl} here~~
-}
-}
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
-\value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
-}
-\references{
-%% ~put references to the literature/web site here ~
+\value{A list with slots for each GEV parameter (\code{loc}, \code{scale}, \code{shape}). Two attributes carry the number of \code{gevDl} and the output of \code{\link{optim}}. 
 }
 \author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
-}
+Benedikt Graeler}
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\seealso{\code{\link{multiGEV}}}
 
-\seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
-}
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+# set up initial (1) and increment (2) parameters of GEV for location sclae and shape
+multiGEVpar <- c(50,5,5, # location
+                 10,.5,.5, # scale
+                 0,.5,.5) # shape
 
-## The function is currently defined as
-function (annMax, durLevels, start, lower, gevDl = durLevels) 
-{
-    stopifnot(length(start) == length(lower))
-    nDl <- min(ncol(annMax), length(durLevels))
-    optFun <- function(par) {
-        attr(par, "gevDl") <- gevDl
-        res <- -sum(sapply(1:nDl, function(cn) dMultiGEV(annMax[, 
-            cn], durLevels[cn], par, log = TRUE)))
-        if (is.infinite(res)) 
-            return(1e+05)
-        else res
-    }
-    optVal <- optim(start, optFun, lower = lower, method = "L-BFGS-B")
-    res <- optVal$par
-    attr(res, "optim") <- optVal
-    attr(res, "gevDl") <- gevDl
-    return(res)
-  }
+# set the base duration levels 
+attr(multiGEVpar, "gevDl") <- c(1,6,24)
+
+# what is the implicit correlation in the rMultiGEV?
+
+smplRnd <- rMultiGEV(1000, c(1,3,6,12,24), multiGEVpar)
+fitMultiGEV(smplRnd, c(1,3,6,12,24), multiGEVpar, gevDl = c(1,6,24))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ distribution }

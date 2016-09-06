@@ -21,7 +21,7 @@ exQt(ts, probs = 0.5, qt, w.width = 10, w.align = "right", exceed = TRUE, relati
   \item{relative}{A single logical; whether the count shall be weighted by the window width.}
 }
 
-\value{An \code{\linkS4class{xts}} object holding the counts. The columns either denote the set of window width, or the different quantiles.}
+\value{An \code{\link{xts}} object holding the counts. The columns either denote the set of window width, or the different quantiles.}
 
 \author{Benedikt Graeler}
 

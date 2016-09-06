@@ -106,7 +106,7 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
   if(count == 50) {
     decision <- "bestfit"
     warning("Lorentz optimisation aborted for", 
-            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ),2, sep=": ")),
+            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
             "with error:", parFitLor$value)
   }
   
@@ -134,7 +134,7 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
   if(count == 50) {
     decision <- "bestfit"
     warning("Weibull optimisation aborted for",
-            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ),2, sep=": ")),
+            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
             "with error:", parFit$value)
   }
   
