@@ -7,21 +7,22 @@ durationLevels <- function(series, timeRes = 5/60, durLevels = c(1,3,6,12,24),
   if(any(durLevels/timeRes < ceiling(durLevels/timeRes)))
     warning("The durLevels are not a multiple of the temporal resolution timeRes. Multiplicies are rounded to the next larger integer.")
   
+  warnOnce <- FALSE
   res <- matrix(NA, length(series), ncol = length(durLevels))
   for(i in 1:length(durLevels)) {
     dl <- durLevels[i]
     res[,i] <- runmean(series, dl/timeRes, align = align,
                        endrule = endrule, ...) * dl/timeRes
+    if (sum(is.nan(res[,i])) > 0) {
+      if(!NaN.rm)
+        warnOnce <- TRUE
+      else
+        res[is.nan(res)] <- NA
+    }
   }
   
-  if(any(apply(res, c(1,2), is.nan))) {
-    if(!NaN.rm)
-      warning("NaNs have been produced.")
-    else
-      for (elem in 1:length(res))
-       res[is.nan(res)] <- NA
-  }
-  
+  if(warnOnce)
+    warning("NaNs have been produced, but not treated.")
   colnames(res) <- paste("dl", durLevels, sep="")
   
   return(res)
