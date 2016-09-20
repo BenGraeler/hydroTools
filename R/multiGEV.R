@@ -2,6 +2,7 @@
 
 # hidden heloer function
 .setupParaMultiGEV <- function(dur, par, durLevels, nDl, int) {
+  stopifnot(length(par) == 3 * (length(durLevels)-1))
   stopifnot(all(diff(rank(dur)) > 0))
   stopifnot(all(diff(rank(durLevels)) > 0))
   
