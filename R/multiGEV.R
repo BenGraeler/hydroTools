@@ -42,18 +42,18 @@ pMultiGEV <- function(q, dur, par=c(0, 1, 0),
     dur <- rep(dur, length.out = ncol(res))
     for (i in 1:length(dur)) {
       pars <- parFun(dur[i], par)
-      res[,i] <- pgev(q[,i], pars[1], pars[2], pars[3], log)
+      res[,i] <- pgev(q[,i], pars[1], pars[2], pars[3])
     }
     colnames(res) <- paste("d", dur, sep="")
   } else {
     if (length(dur) == 1 & !oneColMat) {
       pars <- parFun(dur, par)
-      return(pgev(q, pars[1], pars[2], pars[3], log))
+      return(pgev(q, pars[1], pars[2], pars[3]))
     } else {
       res  <- matrix(NA, length(q), length(dur))
       for (i in 1:length(dur)) {
         pars <- parFun(dur[i], par)
-        res[,i] <- pgev(q, pars[1], pars[2], pars[3], log)
+        res[,i] <- pgev(q, pars[1], pars[2], pars[3])
       }
       colnames(res) <- paste("d", dur, sep="")
     }
