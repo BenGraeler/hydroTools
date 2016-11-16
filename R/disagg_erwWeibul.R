@@ -1,14 +1,17 @@
 library(cmaes)
 
-erwWeibul <- function(t, par=c(0, 1, 1, 5, -0.2)) {
+erwWeibul <- function(t, par=c(10, 1, 1, 50, -0.01)) {
   par[1] + par[2] * par[3] * par[4] * ((t - par[5])*par[3])^(par[4]-1) * exp(-par[3]*(t-par[5])^par[4])
 }
 
+startWeibul <- list(latePeak = function() c(1, 1, 30, -0.01),
+                     default = function() c(1,1,1.2, runif(1, -1, 0)))
+
 optFun <- function(par, qStart, TM, qEnd, HQ) {
-  eVal <- 1e6+runif(1,-1e2,1e2)
+  eVal <- 1e6# +runif(1,-1e2,1e2)
 
   if(abs(par[2]) < 1e-3)
-    return(1e9)
+    return(eVal)
   
   p1 <- qStart - par[1] * par[2] * par[3] * ((0 - par[4])*par[2])^(par[3]-1) * exp(-par[2]*(0-par[4])^par[3])
 
@@ -19,31 +22,41 @@ optFun <- function(par, qStart, TM, qEnd, HQ) {
     return(eVal)
   
   dayDis <- erwWeibul(0:23/24, c(p1,par))
-  
+
   if(any(is.nan(dayDis)) | any(is.infinite(dayDis)) | any(is.na(dayDis)))
     return(eVal)
   if (any(dayDis < 0))
     return(eVal)
-  if (dayDis[24] <= qEnd)
-    return(eVal)
-  if (dayDis[24] >= HQ)
-    return(eVal)
+  # if (dayDis[24] <= qEnd)
+  #   return(eVal)
+  # if (dayDis[24] >= HQ)
+  #   return(eVal)
 
-  if (((dayDis[2]-p1+1e-4)/(max(dayDis)-p1)) < 0.01)
+  # if (((dayDis[2]-p1+1e-4)/(max(dayDis)-p1)) < 0.01)
+  #   return(eVal)
+
+  diffQEnd <- ifelse(dayDis[24] <= qEnd, qEnd - dayDis[24], 0)
+  
+  absDiffHQ <- abs(max(dayDis)-HQ)
+  absDiffTM <- abs(sum(dayDis)/24 - TM)^2
+
+  res <- absDiffHQ+absDiffTM+diffQEnd*10
+  
+  if(is.infinite(res))
     return(eVal)
   
-  absDiffHQ <- abs(max(dayDis)-HQ) 
-  absDiffTM <- abs(sum(erwWeibul(0:99/100, c(p1,par)))/100 - TM)
-
-  return(absDiffHQ+absDiffTM)
+  return(res)
 }
 
-lorentz <- function(t, par=c(0,1,-.2,0.5)) {
+lorentz <- function(t, par=c(10,3.079638, 0.8639837, 0.9580365)) {
   par[1] + 2 * par[2]/pi*par[3]/(4*(t-par[4])^2+par[3]^2)
 }
 
+startLorentz <- list(latePeak = function() c(1,.02,0.95),
+                     default = function() c(0,1,runif(1)))
+
 optFunLor <- function(par, qStart, TM, qEnd, HQ) {
-  eVal <- 1e6+runif(1,-1e2,1e2)
+  eVal <- 1e6# +runif(1,-1e2,1e2)
   
   if(abs(par[2]) < 1e-3 & abs(par[3]) < 1e-3)
     return(eVal)
@@ -54,8 +67,8 @@ optFunLor <- function(par, qStart, TM, qEnd, HQ) {
     return(eVal)
   
   # ensure minimum width of Lorentz function
-  if(abs(par[2]) < 0.2)
-    return(eVal)
+  # if(abs(par[2]) < 0.2)
+  #   return(eVal)
   
   dayDis <- lorentz(0:23/24, c(p1,par))
   
@@ -63,15 +76,18 @@ optFunLor <- function(par, qStart, TM, qEnd, HQ) {
     return(eVal)
   if (any(dayDis < 0))
     return(eVal)
-  if (dayDis[24] < qEnd)
-    return(eVal)
-  if (dayDis[24] >= HQ)
-    return(eVal)
+  # if (dayDis[24] < qEnd)
+  #   return(eVal)
+  # if (dayDis[24] >= HQ)
+  #   return(eVal)
+
+  diffQEnd <- ifelse(dayDis[24] <= qEnd, qEnd - dayDis[24], 0)
   
   absDiffHQ <- abs(max(dayDis)-HQ) 
-  absDiffTM <- abs(sum(lorentz(0:99/100, c(p1,par)))/100 - TM)
-  
-  return(absDiffHQ+absDiffTM)
+  absDiffTM <- abs(sum(lorentz(0:23/24, c(p1,par)))/24 - TM)^2
+
+  # cat(absDiffHQ, absDiffTM, diffQEnd, "\n")
+  return(absDiffHQ+absDiffTM+diffQEnd*10)
 }
 
 #############
@@ -88,16 +104,28 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
     return(res)
   }
   
+  # if (HQ - TM > TM & qEnd > TM)
+  #   peakType <- "latePeak"
+  # else 
+    peakType <- "default"
+  
   # Lorentzfunktion
-  parFitLor <- cma_es(par=c(0,1,0.5), fn=optFunLor, 
+  parFitLor <- optim(par=startLorentz[[peakType]](), fn=optFunLor, 
                      qStart=qStart, TM=TM, qEnd=qEnd, HQ=HQ,
-                    control = list(maxit=1e3))
+                    control = list(maxit=1e3), method="L-BFGS-B")
   count <- 0
-  while (parFitLor$value > (HQ-TM)/2 & count < 50) {
-    parFitLor <- cma_es(par=c(0,1,runif(1)), fn=optFunLor, 
+  # cat(parFitLor$value, "\n")
+  
+  while (parFitLor$value > (HQ-TM)/5 & count < 50) {
+    parFitLor <- optim(par=startLorentz[[peakType]](),
+                        fn=optFunLor, 
                        qStart=qStart, TM=TM, qEnd=qEnd, HQ=HQ,
-                       control = list(maxit=1e3))
+                       control = list(maxit=1e3), 
+                       method="L-BFGS-B",
+                       lower = c(-Inf, 0, 0),
+                       upper = c(Inf, 1, 1))
     count <- count + 1
+    # cat(parFitLor$value, "\n")
   }
   
   if (count > 0 & count < 50 )
@@ -105,9 +133,9 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
   
   if(count == 50) {
     decision <- "bestfit"
-    warning("Lorentz optimisation aborted for", 
-            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
-            "with error:", parFitLor$value)
+    warning("Lorentz optimisation aborted for: ", 
+            paste(c("qStart", " TM", " qEnd", " HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
+            " with error:", parFitLor$value)
   }
   
   par <- parFitLor$par
@@ -115,16 +143,21 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
   dayDisLor <- lorentz(0:23/24, c(p1,par))
   
   p1Lor <- p1
-  
+    
   ## erweiterte Weibull
-  parFit <- optim(par=c(1,1,1.2,0), fn=optFun,
+  parFit <- optim(par=startWeibul[[peakType]](), fn=optFun,
                   qStart=qStart, TM=TM, qEnd=qEnd, HQ=HQ,
-                  method = "SANN", control = list(maxit=1e4))
+                  method = "L-BFGS-B", control = list(maxit=1e4),
+                  lower = c(0, 0, -Inf, -1),
+                  upper = c(Inf, Inf, Inf, 0))
+  
   count <- 0
-  while (parFit$value > (HQ-TM)/2 & count < 50) {
-    parFit <- optim(par=c(1,1,1.2,runif(1)), fn=optFun, 
+  while (parFit$value > (HQ-TM)/5 & count < 50) {
+    parFit <- optim(par=startWeibul[[peakType]](), fn=optFun, 
                     qStart=qStart, TM=TM, qEnd=qEnd, HQ=HQ,
-                    method = "SANN", control = list(maxit=1e4))
+                    method = "L-BFGS-B", control = list(maxit=1e4),
+                    lower = c(0, -10, -Inf, -1),
+                    upper = c(Inf, Inf, Inf, 0))
     count <- count + 1
   }
   
@@ -133,9 +166,9 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
   
   if(count == 50) {
     decision <- "bestfit"
-    warning("Weibull optimisation aborted for",
-            paste(c("qStart", "TM", "qEnd", "HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
-            "with error:", parFit$value)
+    warning("Weibull optimisation aborted for: ",
+            paste(c("qStart", " TM", " qEnd", " HQ"), round(c(qStart, TM, qEnd, HQ), 2), sep=": "),
+            " with error:", parFit$value)
   }
   
   par <- parFit$par
@@ -155,36 +188,50 @@ lorentzErwWeibul <- function(qStart, TM, qEnd, HQ, qPrec, decision) {
     B <- (TM > dayDisLor[24] & dayDisLor[24] > qEnd) | (TM < dayDisLor[24] & dayDisLor[24] < qEnd) # zwischen aktuell und Folgetag
     
     if (A) {
-      if (B)
+      if (B) {
+        cat("[Selected Lorentz.]\n")
         return(dayDisLor)
-      else 
+      }
+      else {
+        cat("[Selected Weibull.]\n")
         return(dayDisWei)
+      }
     }
     
     C <- qPrec <= TM & TM <= qEnd # monoton steigend
     
-    if (C)
+    if (C) {
+      cat("[Selected Weibull.]\n")
       return(dayDisWei)
+    }
   
     D <- qPrec >= TM & TM >= qEnd # monoton fallend
   
     if (D) {
-      if (B)
+      if (B) {
+        cat("[Selected Lorentz.]\n")
         return(dayDisLor)
-      else
+      } else {
+        cat("[Selected Weibull.]\n")
         return(dayDisWei)
+      }
     }
     
     E <- qPrec > TM & TM < qEnd # fallend - wachsend
     
-    if (E)
+    if (E) {
+      cat("[Selected Lorentz.]\n")
       return(dayDisLor)
+    }
   } 
   if (decision == "bestfit") {
-    if (parFitLor$value < parFit$value)
+    if (parFitLor$value < parFit$value) {
+      cat("[Selected Lorentz.]\n")
       return(dayDisLor)
-    else
+    } else {
+      cat("[Selected Weibull.]\n")
       return(dayDisWei)
+    }
   }
 }
 
@@ -261,6 +308,20 @@ disagg<-function(q, scheitelTag=c(), decision="wagner", diagnose=FALSE){
       
       ##nutze Startwerte als Startwertbedingung##
       outv <- c(outv, disaggpoly(1:24/24,a0j,a1j,a2j,a3j))
+    }
+    
+    if (any(is.na(tail(outv, 24))) | any(is.infinite(tail(outv, 24)))) {
+      # eretze mit Polynom
+      a3j<-a3(qS,q[j+1,2],q[j+2,2],q[j+3,2])
+      a2j<-a2(0.5,qS,q[j+1,2],q[j+2,2],q[j+3,2])
+      a1j<-a1(0.5,qS,q[j+1,2],q[j+2,2],q[j+3,2])
+      a0j<-a0(0.5,qS,q[j+1,2],q[j+2,2],q[j+3,2])
+      
+      
+      outv <- c(outv[-c(length(outv)-0:23)], 
+                disaggpoly(1:24/24,a0j,a1j,a2j,a3j))
+      
+      warning("Neither Weibull nor Lorentz could disaggregate the timeseries; using polynomial fallback.")
     }
   }
   
